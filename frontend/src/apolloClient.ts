@@ -1,4 +1,3 @@
-import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import {
   ApolloClient,
   InMemoryCache,
@@ -10,9 +9,9 @@ import {
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { useUserStore } from "./stores/userStore";
 import { onError } from "@apollo/client/link/error";
+import { createUploadLink } from "apollo-upload-client";
 
 async function refreshToken(client: ApolloClient<NormalizedCacheObject>) {
   try {
@@ -45,8 +44,9 @@ const wsLink = new WebSocketLink({
 });
 
 const errorLink = onError(({ graphQLErrors, operation, forward }) => {
-  for (const err of graphQLErrors) {
-    if (err.extensions.code === "UNAUTHENTICATED" && retryCount < maxRetry) {
+  if(!graphQLErrors) return;
+  for (let err of graphQLErrors) {
+    if (err?.extensions?.code === "UNAUTHENTICATED" && retryCount < maxRetry) {
       retryCount++;
       return new Observable((observer) => {
         refreshToken(client)
