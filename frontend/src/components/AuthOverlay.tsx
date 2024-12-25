@@ -78,7 +78,7 @@ import {
               })
             setIsLoginOpen()
           },
-          
+
         }).catch((err) => {
           console.log(err.graphQLErrors, "ERROR")
           setErrors(err.graphQLErrors[0].extensions)
@@ -166,7 +166,7 @@ import {
     }
   
     const Login = () => {
-      const [loginUser, { loading, error, data }] =
+      const [loginUser, { loading }] =
         useMutation<LoginUserMutation>(LOGIN_USER)
       const setUser = useUserStore((state) => state.setUser)
       const setIsLoginOpen = useGeneralStore((state) => state.toggleLoginModal)
