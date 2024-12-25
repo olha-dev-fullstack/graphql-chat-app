@@ -1,5 +1,5 @@
 import AuthOverlay from "../components/AuthOverlay";
-import ProtectedRoutes from "../components/ProtectedRoutes";
+import ProfileSettings from "../components/ProfileSettings";
 import Sidebar from "../components/Sidebar";
 import MainLayout from "../layouts/MainLayout";
 
@@ -9,7 +9,7 @@ function Home() {
       <>
       <AuthOverlay />
         <Sidebar />
-        <>Home page</>
+        <ProfileSettings />
       </>
     </MainLayout>
   );

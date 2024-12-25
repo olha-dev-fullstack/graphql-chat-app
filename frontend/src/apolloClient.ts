@@ -8,28 +8,33 @@ import {
   split,
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
+import { createUploadLink } from "apollo-upload-client";
 import { getMainDefinition } from "@apollo/client/utilities";
+import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { useUserStore } from "./stores/userStore";
 import { onError } from "@apollo/client/link/error";
-import { createUploadLink } from "apollo-upload-client";
+
+loadErrorMessages();
+loadDevMessages();
 
 async function refreshToken(client: ApolloClient<NormalizedCacheObject>) {
   try {
     const { data } = await client.mutate({
       mutation: gql`
-            mutattion RefreshToken {
-                refreshToken
-            }`,
+        mutation RefreshToken {
+          refreshToken
+        }
+      `,
     });
     const newAccessToken = data?.refreshToken;
     if (!newAccessToken) {
-      throw new Error("New access token not received");
+      throw new Error("New access token not received.");
     }
-  } catch (error) {
-    throw new Error("Error getting new access token");
+    return `Bearer ${newAccessToken}`;
+  } catch (err) {
+    throw new Error("Error getting new access token.");
   }
 }
-
 let retryCount = 0;
 const maxRetry = 3;
 
@@ -42,11 +47,11 @@ const wsLink = new WebSocketLink({
     },
   },
 });
-
 const errorLink = onError(({ graphQLErrors, operation, forward }) => {
-  if(!graphQLErrors) return;
-  for (let err of graphQLErrors) {
-    if (err?.extensions?.code === "UNAUTHENTICATED" && retryCount < maxRetry) {
+  //@ts-ignore
+  for (const err of graphQLErrors) {
+    //@ts-ignore
+    if (err.extensions.code === "UNAUTHENTICATED" && retryCount < maxRetry) {
       retryCount++;
       return new Observable((observer) => {
         refreshToken(client)
@@ -95,7 +100,6 @@ const link = split(
   wsLink,
   ApolloLink.from([errorLink, uploadLink])
 );
-
 export const client = new ApolloClient({
   uri: "http://localhost:3000/graphql",
   cache: new InMemoryCache({}),
